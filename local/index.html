@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vantage Edge — MLB Total Bases Projections (Local)</title>
+  <style>
+    :root {
+      --carbon: #0F1014; --graphite: #181A20; --steel: #252830;
+      --gold: #C8A84B; --chalk: #D4D8E0; --smoke: #6C7280; --iron: #404550;
+      --emerald: #16A679; --blue: #6B9EF8; --red: #DC3545;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--carbon); color: var(--chalk);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+    header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+    h1 { font-size: 1.3rem; margin: 0; letter-spacing: -0.02em; }
+    .gold { color: var(--gold); }
+    .sub { color: var(--smoke); font-size: 0.8rem; margin: 0 0 20px; line-height: 1.5; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+    button {
+      background: transparent; color: var(--chalk); border: 1px solid var(--steel);
+      border-radius: 6px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer;
+    }
+    button:hover { border-color: var(--gold); color: var(--gold); }
+    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+    .kpi { background: var(--graphite); border: 1px solid var(--steel); border-radius: 6px; padding: 12px 14px; }
+    .kpi .label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--smoke); }
+    .kpi .val { font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
+    .card {
+      background: var(--graphite); border: 1px solid var(--steel); border-left: 3px solid var(--steel);
+      border-radius: 6px; padding: 12px 14px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    }
+    .card.elite { border-left-color: var(--gold); }
+    .card.vhigh { border-left-color: #2563EB; }
+    .card.high  { border-left-color: var(--emerald); }
+    .name { font-weight: 600; font-size: 0.95rem; }
+    .meta { font-size: 0.7rem; color: var(--iron); margin-top: 2px; }
+    .chips { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .chip { font-size: 0.65rem; color: var(--smoke); background: var(--carbon);
+            border: 1px solid var(--steel); border-radius: 4px; padding: 1px 6px; }
+    .tier { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.06em; padding: 2px 7px;
+            border-radius: 4px; margin-left: 8px; }
+    .score { text-align: right; flex-shrink: 0; }
+    .score .n { font-size: 1.4rem; font-weight: 800; }
+    .score .u { font-size: 0.6rem; color: var(--smoke); }
+    .note { font-size: 0.72rem; color: var(--iron); margin-top: 24px; line-height: 1.6; }
+    .state { color: var(--smoke); padding: 40px 0; text-align: center; }
+    details { background: var(--graphite); border: 1px solid var(--steel); border-radius: 6px;
+              padding: 12px 14px; margin-top: 22px; }
+    summary { cursor: pointer; color: var(--gold); font-size: 0.85rem; }
+    details p, details li { font-size: 0.78rem; color: var(--smoke); line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>VANTAGE <span class="gold">EDGE</span></h1>
+    </header>
+    <p class="sub">
+      MLB total-bases projections — a transparent, rule-based score for how likely each batter is to have a
+      quiet game (1 or fewer total bases). Higher = more likely a quiet game.
+      This is a heuristic ranking from season stats, not a prediction of any outcome.
+    </p>
+
+    <div class="row">
+      <button id="refresh">↻ Recompute</button>
+      <span id="stamp" class="meta"></span>
+    </div>
+
+    <div class="kpis" id="kpis" style="display:none">
+      <div class="kpi"><div class="label">Batters</div><div class="val" id="k-total">–</div></div>
+      <div class="kpi"><div class="label">Elite (≥80)</div><div class="val gold" id="k-elite">–</div></div>
+      <div class="kpi"><div class="label">Season</div><div class="val" id="k-season">–</div></div>
+    </div>
+
+    <div id="list"><div class="state">Loading projections…</div></div>
+
+    <details>
+      <summary>How the score works</summary>
+      <p>Every batter starts from a base value of 0.63. Each season signal then moves the score continuously,
+      in proportion to how far the batter sits from league average: low SLG, low ISO, a high strikeout rate and
+      a high walk rate push it up (more likely a quiet game); high SLG and high ISO push it down. When the
+      batter's team plays today, the ballpark factor and the opposing starter's K/9, WHIP and xFIP are added.
+      The final score is clamped to 0.45–0.95 and grouped into tiers.</p>
+      <p>No accuracy, hit-rate, or return figure is shown, because this ranks hitters by profile — it does not
+      measure outcomes. Data: FanGraphs season stats and the free MLB Stats API.</p>
+    </details>
+
+    <p class="note">Data sources (all free, no auth): FanGraphs leaders API, MLB Stats API (statsapi.mlb.com).</p>
+  </div>
+
+  <script>
+    const tierClass = (t) => t === "Elite" ? "elite" : t === "Very High" ? "vhigh" : t === "High" ? "high" : "";
+    const tierBg = (t) => ({
+      "Elite": ["rgba(200,168,75,0.12)", "#C8A84B"],
+      "Very High": ["rgba(37,99,235,0.12)", "#6B9EF8"],
+      "High": ["rgba(22,166,121,0.12)", "#16A679"],
+    }[t] || ["rgba(108,114,128,0.12)", "#9EA3AF"]);
+
+    function render(data) {
+      const list = document.getElementById("list");
+      const preds = data.predictions || [];
+      document.getElementById("stamp").textContent = data.generated_at
+        ? "Computed " + new Date(data.generated_at).toLocaleString() : "";
+      const kpis = document.getElementById("kpis");
+      kpis.style.display = "grid";
+      document.getElementById("k-total").textContent = preds.length;
+      document.getElementById("k-elite").textContent = preds.filter(p => p.tier === "Elite").length;
+      document.getElementById("k-season").textContent = data.season || "—";
+
+      if (!preds.length) { list.innerHTML = '<div class="state">No projections returned.</div>'; return; }
+
+      list.innerHTML = preds.slice(0, 120).map((p, i) => {
+        const [bg, fg] = tierBg(p.tier);
+        const chips = [];
+        if (p.slg_2025 != null) chips.push(`<span class="chip">SLG <b>${p.slg_2025.toFixed(3)}</b></span>`);
+        if (p.iso_2025 != null) chips.push(`<span class="chip">ISO <b>${p.iso_2025.toFixed(3)}</b></span>`);
+        if (p.k_pct != null) chips.push(`<span class="chip">K% <b>${(p.k_pct*100).toFixed(1)}%</b></span>`);
+        (p.key_signals || []).slice(0, 2).forEach(s => chips.push(`<span class="chip">${s}</span>`));
+        return `<div class="card ${tierClass(p.tier)}">
+          <div>
+            <span class="name">#${i+1} ${p.player_name}</span>
+            <span class="tier" style="background:${bg};color:${fg}">${p.tier.toUpperCase()}</span>
+            <div class="meta">${p.team || ""}${p.game ? " · " + p.game : ""}</div>
+            <div class="chips">${chips.join("")}</div>
+          </div>
+          <div class="score"><div class="n" style="color:${fg}">${Math.round(p.prob_under*100)}</div>
+            <div class="u">quiet-game score</div></div>
+        </div>`;
+      }).join("");
+    }
+
+    async function load() {
+      const list = document.getElementById("list");
+      try {
+        const r = await fetch("/api/projections");
+        const d = await r.json();
+        if (d.loading) { list.innerHTML = '<div class="state">Scoring… this takes 10–20s on first run.</div>'; setTimeout(load, 2500); return; }
+        if (d.error) { list.innerHTML = `<div class="state">Error: ${d.error}</div>`; return; }
+        render(d);
+      } catch (e) {
+        list.innerHTML = '<div class="state">Could not reach the local server.</div>';
+      }
+    }
+
+    document.getElementById("refresh").addEventListener("click", async () => {
+      document.getElementById("list").innerHTML = '<div class="state">Recomputing…</div>';
+      await fetch("/api/refresh", { method: "POST" });
+      setTimeout(load, 2500);
+    });
+
+    load();
+  </script>
+</body>
+</html>

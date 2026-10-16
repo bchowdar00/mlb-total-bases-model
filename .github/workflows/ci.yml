@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── TypeScript type check + build ─────────────────────────────────────────
+  build:
+    name: Build & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          test -f dist/index.cjs || (echo "Server bundle missing" && exit 1)
+          test -f dist/public/index.html || (echo "Client bundle missing" && exit 1)
+          echo "Build artifacts verified ✓"
+
+  # ─── Python syntax check (model engine) ────────────────────────────────────
+  python-check:
+    name: Python Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Syntax check — model engine
+        run: |
+          # py_compile checks for syntax errors only.
+          # The model code uses intentional compact style (one-liners, compact
+          # dicts, bare except for resilience) — valid Python, not a bug.
+          python3 -m py_compile server/model_engine.py
+          echo "model_engine.py ✓"
+          python3 -m py_compile server/grade_results.py
+          echo "grade_results.py ✓"

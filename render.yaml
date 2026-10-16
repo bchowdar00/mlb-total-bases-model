@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: vantage-edge
+    runtime: node
+    plan: free
+    buildCommand: python3 -m pip install -r requirements.txt --quiet && npm ci --include=dev && npm run build
+    startCommand: node dist/index.cjs
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Neon Serverless Postgres — free forever, no credit card, never expires
+      # Get connection string from: https://console.neon.tech
+      # Set via Render dashboard or GitHub Actions sync-render-env.yml workflow
+      - key: DATABASE_URL
+        sync: false
+    healthCheckPath: /api/health

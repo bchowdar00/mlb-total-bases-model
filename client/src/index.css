@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700;900&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ──────────────────────────────────────────────────────────────────────────
+   VANTAGE EDGE — Design System
+   Brand colors: Carbon · Graphite · Steel · Champagne Gold · Chalk
+   Typography: DM Sans (display/UI) + Space Grotesk (data/numbers)
+────────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    /* Vantage Edge — Carbon dark system */
+    --background:    220 18% 6%;        /* Carbon #0F1014 */
+    --foreground:    220 10% 84%;       /* Chalk #D4D8E0 */
+    --card:          222 16% 10%;       /* Graphite #181A20 */
+    --card-foreground: 220 10% 84%;
+    --popover:       222 16% 10%;
+    --popover-foreground: 220 10% 84%;
+
+    /* Champagne Gold primary */
+    --primary:       42 58% 54%;        /* #C8A84B */
+    --primary-foreground: 220 18% 6%;
+
+    --secondary:     222 14% 15%;       /* Steel #252830 */
+    --secondary-foreground: 220 10% 75%;
+
+    --muted:         222 14% 13%;
+    --muted-foreground: 220 8% 50%;     /* Smoke #6C7280 */
+
+    --accent:        42 58% 54%;
+    --accent-foreground: 220 18% 6%;
+
+    --destructive:   354 71% 53%;       /* Loss Red #DC3545 */
+    --destructive-foreground: 220 10% 92%;
+
+    --border:        222 12% 18%;       /* Steel #252830 */
+    --input:         222 14% 13%;
+    --ring:          42 58% 54%;        /* Gold focus ring */
+    --radius:        0.375rem;
+
+    /* Custom VE tokens */
+    --ve-gold:       #C8A84B;
+    --ve-gold-warm:  #B8973E;
+    --ve-gold-deep:  #7A6228;
+    --ve-gold-ghost: rgba(200,168,75,0.07);
+    --ve-carbon:     #0F1014;
+    --ve-graphite:   #181A20;
+    --ve-steel:      #252830;
+    --ve-iron:       #404550;
+    --ve-smoke:      #6C7280;
+    --ve-chalk:      #D4D8E0;
+    --ve-win:        #16A679;
+    --ve-loss:       #DC3545;
+    --ve-data:       #2563EB;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+  }
+
+  /* Headings use DM Sans Bold */
+  h1, h2, h3, h4 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* All numeric/data values use Space Grotesk */
+  .data-font {
+    font-family: 'Space Grotesk', monospace;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+  }
+}
+
+/* ── Tier system — Vantage Edge color language ─────────────────────────── */
+.tier-elite {
+  background: rgba(200,168,75,0.08);
+  color: #C8A84B;
+  border-color: rgba(200,168,75,0.25);
+}
+.tier-very-high {
+  background: rgba(37,99,235,0.08);
+  color: #6B9EF8;
+  border-color: rgba(37,99,235,0.25);
+}
+.tier-high {
+  background: rgba(22,166,121,0.08);
+  color: #16A679;
+  border-color: rgba(22,166,121,0.22);
+}
+.tier-moderate {
+  background: rgba(108,114,128,0.08);
+  color: #9EA3AF;
+  border-color: rgba(108,114,128,0.22);
+}
+.tier-low {
+  background: rgba(64,69,80,0.08);
+  color: #6C7280;
+  border-color: rgba(64,69,80,0.22);
+}
+
+/* ── Confidence bar — gold gradient for elite, blue for strong ─────────── */
+.prob-bar-elite   { background: linear-gradient(90deg, #B8973E, #C8A84B); }
+.prob-bar-high    { background: linear-gradient(90deg, #2563EB, #6B9EF8); }
+.prob-bar-mid     { background: linear-gradient(90deg, #16A679, #34D399); }
+.prob-bar-low     { background: #404550; }
+
+/* ── Gold accent elements ─────────────────────────────────────────────── */
+.ve-gold-text   { color: var(--ve-gold); }
+.ve-gold-border { border-color: rgba(200,168,75,0.3); }
+.ve-gold-rule   { border-top: 2px solid var(--ve-gold-warm); }
+.ve-gold-bar    { background: var(--ve-gold-warm); }
+
+/* ── Card hover state — gold border glow ─────────────────────────────── */
+.ve-card {
+  background: var(--ve-graphite);
+  border: 1px solid var(--ve-steel);
+  border-radius: 6px;
+  transition: border-color 0.15s ease;
+}
+.ve-card:hover { border-color: rgba(200,168,75,0.35); }
+
+/* ── Win / Loss semantic colors ────────────────────────────────────────── */
+.ve-win  { color: var(--ve-win); }
+.ve-loss { color: var(--ve-loss); }
+.ve-data { color: var(--ve-data); }
+
+/* ── Data values — always tabular ────────────────────────────────────── */
+.tabnum {
+  font-family: 'Space Grotesk', monospace;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* ── Top nav gold rule ─────────────────────────────────────────────────── */
+.ve-nav-rule {
+  border-bottom: 1px solid var(--ve-steel);
+  background: var(--ve-carbon);
+}
+
+/* ── Live badge pulse — gold, not green ─────────────────────────────── */
+@keyframes ve-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+.ve-live-pulse {
+  animation: ve-pulse 2.2s ease-in-out infinite;
+  background: var(--ve-gold);
+  width: 6px; height: 6px; border-radius: 50%;
+}
+
+/* ── Micro label caps ─────────────────────────────────────────────────── */
+.ve-label {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ve-smoke);
+}
+
+/* ── Vertical gold accent bar ─────────────────────────────────────────── */
+.ve-accent-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--ve-gold-warm);
+  border-radius: 3px 0 0 3px;
+}
+
+/* ── Scrollbar — minimal, on-brand ───────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--ve-carbon); }
+::-webkit-scrollbar-thumb { background: var(--ve-steel); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ve-iron); }
+
+/* ── Stat chip — inline data badge ──────────────────────────────── */
+.stat-chip {
+  font-size: 0.675rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  background: var(--ve-graphite);
+  color: var(--ve-smoke);
+  border: 1px solid var(--ve-steel);
+  font-family: 'Space Grotesk', monospace;
+  font-feature-settings: 'tnum' 1;
+}
+.stat-chip b {
+  color: var(--ve-chalk);
+  font-weight: 600;
+}
+
+/* ── Game live pulse ─────────────────────────────────────────── */
+@keyframes ve-game-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(220,53,69,0.7); }
+  50%  { box-shadow: 0 0 0 5px rgba(220,53,69,0); }
+  100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+}

@@ -1,0 +1,10 @@
+# Python dependencies.
+#
+#   server/model_engine.py  — projection scorer; standard library only (csv, json, math)
+#   scripts/fetch_data.py   — regenerates the FanGraphs CSV; standard library only
+#   server/grade_results.py — box-score grader; reads/writes Postgres via DATABASE_URL
+#
+# Only the grader needs a third-party package (the Postgres driver). The engine
+# and the fetch script use the standard library alone.
+
+psycopg[binary]>=3.1
